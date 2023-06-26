@@ -4,7 +4,7 @@ import requests
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from classes.models import Spell, User, Base
+from classes.models import Spell, User, Character, Base
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -88,14 +88,44 @@ def user_menu(current_id):
     clear_terminal()
     current_user = session.query(User).filter(User.id == int(current_id)).first()
     print(f'''
-                Welcome, {current_user.username}!
+        Welcome, {current_user.username}!
 
 
     ''')
     print('1) Create new Character')
-    choice = input ('Exit? (y/n): ')
-    if choice == 'y':
+    choice = input ('Choose Character: ')
+    if choice == '1':
+        create_character(current_id)
+        user_menu(current_id)
+    
+def create_character(user_id):
+    new_name = str(input('Name Your Character >>> '))
+    starting_level = int(input('What is your character\'s current level? >>> '))
+    starting_gold = int(input('How much gold do your character have? >>> '))
+    print(f'''
+        name: {new_name}
+        level: {starting_level}
+        gold: {starting_gold}
+        owner: {user_id}
+    '''
+    )
+    confirm = input('Confirm? (y/n): ')
+    if confirm == 'y':
+        engine=create_engine('sqlite:///characters.db')
+        Base.metadata.create_all(engine)
+        Session= sessionmaker(bind=engine)
+        session = Session()
+        new_character = Character(
+            owner = user_id,
+            name = new_name,
+            level = starting_level,
+            gold = starting_gold
+        )
+        session.add(new_character)
+        session.commit()
+    else:
         exit()
+    
 
 
 
