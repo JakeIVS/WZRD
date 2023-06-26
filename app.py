@@ -30,17 +30,28 @@ def choose_user():
     for user in user_list:
         valid_user_ids.append(user.id)
         print(f'{user.id}) {user.username}')
-    user_select = int(input('Select User: '))
-    if user_select in valid_user_ids:
-        current_user_id = user_select
-        user_menu(current_user_id)
-    else:
-        print('Invalid input')
-        choice = input('Exit? (y/n): ')
-        if choice == 'y':
-            exit()
+    if valid_user_ids == []:
+        print('No users exist')
+        print('1) Create New User')
+        print('2) Exit')
+        choice = int(input('Choose option: '))
+        if choice == 1:
+            new_user()
         else:
-            choose_user()
+            exit()
+    else:
+        user_select = int(input('Select User: '))
+        if user_select in valid_user_ids:
+            current_user_id = user_select
+            user_menu(current_user_id)
+        else:
+            print('Invalid input')
+            choice = input('Exit? (y/n): ')
+            if choice == 'y':
+                exit()
+            else:
+                choose_user()
+    
 
 def new_user():
     clear_terminal()
