@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 sqlalchemy = "*"
 alembic = "*"
+requests = "*"
+art = "==6.0"
 
 [dev-packages]
 
