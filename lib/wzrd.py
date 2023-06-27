@@ -5,6 +5,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from models import Spell, User, Character, Base
 import os
 
+
+
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
     print('''
@@ -85,10 +87,6 @@ def new_user():
 
 def user_menu(current_id):
     clear_terminal()
-    engine=create_engine('sqlite:///users.db')
-    Base.metadata.create_all(engine)
-    Session= sessionmaker(bind=engine)
-    session = Session()
 
     current_user = session.query(User).filter(User.id == int(current_id)).first()
     print(f'''
@@ -96,10 +94,6 @@ def user_menu(current_id):
 
 
     ''')
-    engine=create_engine('sqlite:///characters.db')
-    Base.metadata.create_all(engine)
-    Session= sessionmaker(bind=engine)
-    session = Session()
     character_query = session.query(Character).filter(Character.owner == current_id).all()
     valid_char_choices = []
     print('1) Create new Character')
@@ -119,10 +113,6 @@ def user_menu(current_id):
 
 def character_menu(id):
     clear_terminal()
-    engine=create_engine('sqlite:///characters.db')
-    Base.metadata.create_all(engine)
-    Session= sessionmaker(bind=engine)
-    session = Session()
 
     character = session.query(Character).filter(Character.id == id).first()
     print(f"Now showing {character.name}")
@@ -142,10 +132,6 @@ def create_character(user_id):
     )
     confirm = input('Confirm? (y/n): ')
     if confirm == 'y':
-        engine=create_engine('sqlite:///characters.db')
-        Base.metadata.create_all(engine)
-        Session= sessionmaker(bind=engine)
-        session = Session()
         new_character = Character(
             owner = user_id,
             name = new_name,
@@ -161,6 +147,10 @@ def create_character(user_id):
 
 
 if __name__ == '__main__':
+    engine=create_engine('sqlite:///program.db')
+    Session= sessionmaker(bind=engine)
+    session = Session()
+
     clear_terminal()
     print('''
                 1) Login
@@ -168,11 +158,7 @@ if __name__ == '__main__':
                 0) Exit
     ''' )
     current_user_id = None
-    engine = create_engine('sqlite:///users.db')
     start_option = int(input('Choose Option: '))
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
 
     while start_option != 0:
         if start_option == 1:

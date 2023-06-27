@@ -1,7 +1,21 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, MetaData
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
+
+convention = {
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+}
+metadata = MetaData(naming_convention=convention)
+
+
+character_spell = Table(
+    'character_spell',
+    Base.metadata,
+    Column('character_id', ForeignKey('characters.id', primary_key=True)),
+    Column('spell_id', ForeignKey('users.id', primary_key=True)),
+    extend_existing=True,
+)
 
 class Spell(Base):
     __tablename__ = 'spells'
@@ -14,6 +28,8 @@ class Spell(Base):
     duration = Column(String())
     description = Column(String())
     higher_level = Column(String())
+
+    characters = relationship('Character', secondary=character_spell, back_populates='spells')
 
     def __repr__(self):
         shown_level = None
@@ -43,7 +59,7 @@ class User(Base):
     id = Column(Integer(), primary_key=True)
     username = Column(String())
     password = Column(String())
-    characters = relationship('Character', backref='users')
+    characters = relationship('Character', backref='users', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"User: {self.username}"
@@ -57,6 +73,8 @@ class Character(Base):
     name = Column(String())
     level = Column(Integer())
     gold = Column(Integer())
+
+    spells = relationship('Spell', secondary=character_spell, back_populates='characters')
 
     def __repr__(self):
         return f'''
