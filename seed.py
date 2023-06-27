@@ -7,21 +7,22 @@ from classes.models import Spell, Base
 
 engine = create_engine('sqlite:///spells.db')
 Base.metadata.create_all(engine)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 response = requests.get('https://www.dnd5eapi.co/api/spells').json()
 spell_list = response['results']
 
-
-
-
+# clear old data
+session.query(Spell).delete()
+session.commit()
+# add new data
 print('Seeding spell list...')
 for spell in spell_list:
     url = spell['url']
     spell_response = requests.get(f'https://www.dnd5eapi.co{url}')
     fetched_spell = spell_response.json()
     if {"index": "wizard", "name": "Wizard", "url": "/api/classes/wizard"} in fetched_spell['classes']:
-        Session = sessionmaker(bind=engine)
-        session = Session()
         spell = Spell(
             name = fetched_spell['name'],
             level = fetched_spell['level'],
