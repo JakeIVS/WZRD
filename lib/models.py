@@ -1,26 +1,27 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Table, MetaData
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, MetaData, create_engine
+from sqlalchemy.orm import declarative_base, relationship, backref
 
-Base = declarative_base()
+engine = create_engine('sqlite:///program.db')
 
 convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
 }
 metadata = MetaData(naming_convention=convention)
 
+Base = declarative_base(metadata=metadata)
 
 character_spell = Table(
     'character_spell',
     Base.metadata,
-    Column('character_id', ForeignKey('characters.id', primary_key=True)),
-    Column('spell_id', ForeignKey('users.id', primary_key=True)),
+    Column('character_id', ForeignKey('characters.character_id', primary_key=True)),
+    Column('spell_id', ForeignKey('spells.spell_id', primary_key=True)),
     extend_existing=True,
 )
 
 class Spell(Base):
     __tablename__ = 'spells'
 
-    id = Column(Integer(), primary_key=True)
+    spell_id = Column(Integer(), primary_key=True)
     name = Column(String())
     level = Column(Integer())
     range = Column(String())
@@ -56,10 +57,10 @@ class Spell(Base):
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Integer(), primary_key=True)
+    user_id = Column(Integer(), primary_key=True)
     username = Column(String())
     password = Column(String())
-    characters = relationship('Character', backref='users', cascade='all, delete-orphan')
+    characters = relationship('Character', backref=backref('users'), cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"User: {self.username}"
@@ -68,8 +69,8 @@ class User(Base):
 class Character(Base):
     __tablename__ = 'characters'
 
-    id = Column(Integer(), primary_key=True)
-    owner = Column(Integer(), ForeignKey('users.id'))
+    character_id = Column(Integer(), primary_key=True)
+    owner = Column(Integer(), ForeignKey('users.user_id'))
     name = Column(String())
     level = Column(Integer())
     gold = Column(Integer())

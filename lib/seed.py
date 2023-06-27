@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from models import Spell
 
 if __name__ == '__main__':
-    engine = create_engine('sqlite:///.db')
+    engine = create_engine('sqlite:///program.db')
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -20,6 +20,7 @@ if __name__ == '__main__':
     # add new data
     print('Seeding spell list...')
     for spell in spell_list:
+        spells = []
         url = spell['url']
         spell_response = requests.get(f'https://www.dnd5eapi.co{url}')
         fetched_spell = spell_response.json()
@@ -36,5 +37,8 @@ if __name__ == '__main__':
             
             session.add(spell)
             session.commit()
+
+            spells.append(spell)
+
     print('Complete!')
         
