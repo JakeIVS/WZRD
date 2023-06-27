@@ -2,7 +2,7 @@
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from classes.models import Spell, User, Character, Base
+from models import Spell, User, Character, Base
 import os
 
 def clear_terminal():

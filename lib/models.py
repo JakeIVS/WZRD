@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
@@ -43,6 +43,7 @@ class User(Base):
     id = Column(Integer(), primary_key=True)
     username = Column(String())
     password = Column(String())
+    characters = relationship('Character', backref='users')
 
     def __repr__(self):
         return f"User: {self.username}"

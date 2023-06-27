@@ -3,7 +3,7 @@
 import requests 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from classes.models import Spell, Base
+from models import Spell, Base
 
 engine = create_engine('sqlite:///spells.db')
 Base.metadata.create_all(engine)
