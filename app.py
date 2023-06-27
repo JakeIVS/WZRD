@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import requests
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from classes.models import Spell, User, Character, Base
+import os
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -86,18 +85,51 @@ def new_user():
 
 def user_menu(current_id):
     clear_terminal()
+    engine=create_engine('sqlite:///users.db')
+    Base.metadata.create_all(engine)
+    Session= sessionmaker(bind=engine)
+    session = Session()
+
     current_user = session.query(User).filter(User.id == int(current_id)).first()
     print(f'''
         Welcome, {current_user.username}!
 
 
     ''')
+    engine=create_engine('sqlite:///characters.db')
+    Base.metadata.create_all(engine)
+    Session= sessionmaker(bind=engine)
+    session = Session()
+    character_query = session.query(Character).filter(Character.owner == current_id).all()
+    valid_char_choices = []
     print('1) Create new Character')
-    choice = input ('Choose Character: ')
-    if choice == '1':
+    for character in character_query:
+        char_choice = character.id + 1
+        valid_char_choices.append(char_choice)
+        print(f"{char_choice}) {character.name}")
+    choice = int(input ('Choose Character: '))
+    print(type(choice))
+    if choice == 1:
         create_character(current_id)
         user_menu(current_id)
-    
+    elif type(choice) == int:
+        char_id = choice -1
+        character_menu(char_id)
+
+
+def character_menu(id):
+    clear_terminal()
+    engine=create_engine('sqlite:///characters.db')
+    Base.metadata.create_all(engine)
+    Session= sessionmaker(bind=engine)
+    session = Session()
+
+    character = session.query(Character).filter(Character.id == id).first()
+    print(f"Now showing {character.name}")
+    choice = input("Exit? (y/n)")
+    if choice == 'y':
+        exit()
+
 def create_character(user_id):
     new_name = str(input('Name Your Character >>> '))
     starting_level = int(input('What is your character\'s current level? >>> '))
@@ -106,7 +138,6 @@ def create_character(user_id):
         name: {new_name}
         level: {starting_level}
         gold: {starting_gold}
-        owner: {user_id}
     '''
     )
     confirm = input('Confirm? (y/n): ')
@@ -144,9 +175,9 @@ if __name__ == '__main__':
     session = Session()
 
     while start_option != 0:
-        if start_option is 1:
+        if start_option == 1:
             choose_user()            
             
 
-        if start_option is 2:
+        if start_option == 2:
             new_user()
