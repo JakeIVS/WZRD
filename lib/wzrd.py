@@ -200,9 +200,10 @@ def spellbook_manager(character):
 
     0) Back
     ''')
+    print(f'{current_user_id}')
     choice = input('Choose Option: ')
     if choice == '0':
-        character_menu(character)
+        character_menu(character.character_id, current_user_id)
     elif choice == '1':
         add_spell(character)
 
@@ -245,12 +246,56 @@ def add_spell(character):
             ''')
             confirm_spell = input('Confirm? (y/n): ')
             if confirm_spell == 'y':
-                pass
+                character.spells.append(selected_spell)
+                session.add(character)
+                session.commit()
+                clear_terminal()
+                print(f'''{selected_spell.name} added to your Spellbook.
+                    
+                ''')
+                keep_going = input('Add More? (y/n): ')
+                if keep_going == 'y':
+                    add_spell(character)
+                else:
+                    character_menu(character.character_id, current_user_id)
             else:
                 add_spell(character)
         
     elif choice == '2':
-        pass
+        spell_search = input("Search for a spell by name >>> ")
+        clear_terminal
+        search_results = session.query(Spell).filter(Spell.name.like(f'%{spell_search}')).all()
+        for spell in search_results:
+            print(f'ID: {spell.spell_id}) {spell.name} ({spell.casting_time}) | Level {spell.level} Spell')
+        spell_select = input('Select spell by ID >>> ')
+        if spell_select == '0':
+            add_spell(character)
+        else:
+            clear_terminal()
+            selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first()
+            print(f'''
+            Spell to Add:
+
+            {selected_spell} 
+
+            ''')
+            confirm_spell = input('Confirm? (y/n): ')
+            if confirm_spell == 'y':
+                character.spells.append(selected_spell)
+                session.add(character)
+                session.commit()
+                clear_terminal()
+                print(f'''{selected_spell.name} added to your Spellbook.
+                    
+                ''')
+                keep_going = input('Add More? (y/n): ')
+                if keep_going == 'y':
+                    add_spell(character)
+                else:
+                    character_menu(character.character_id, current_user_id)
+            else:
+                add_spell(character)
+        
     elif choice == '0':
         spellbook_manager(character)
 
