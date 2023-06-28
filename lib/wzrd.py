@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import declarative_base, sessionmaker
 from models import Spell, User, Character, character_spell
 import os
@@ -182,6 +182,8 @@ def character_menu(char_id, current_user_id):
     """)
     
     choice = input("Choose Option: ")
+    if choice == '1':
+        spellbook(character)
     if choice == '2':
         spellbook_manager(character)
     elif choice == '3':
@@ -197,6 +199,37 @@ def character_menu(char_id, current_user_id):
         user_menu(current_user_id)
 
 
+def spellbook(character):
+    clear_terminal()
+    highest_level_tuple = session.query(Spell.level).filter(Spell.characters.any(character_id=character.character_id)).order_by(desc(Spell.level)).first()
+    highest_level, = highest_level_tuple
+    all_spells = []
+    for level in range(1,highest_level):
+        spellbook_segment(level, character, all_spells)
+
+    choice = input('Choose Spell >>> ')
+    clear_terminal()
+    selected_spell = session.query(Spell).filter(Spell.name == choice).first()
+    print(selected_spell)
+    back = input('1) Back to Spellbook 2) Back to Menu: ')
+    
+
+def spellbook_segment(level, character, all_spells):
+    if level == 1:
+        level_string = '1st'
+    elif level == 2:
+        level_string = '2nd'
+    elif level == 3:
+        level_string = '3rd'
+    else:
+        level_string = f'{level}th'
+    level_spells = session.query(Spell).filter(Spell.characters.any(character_id=character.character_id), Spell.level == level).all()
+    print(f'------- {level_string} Level -------')
+    for spell in level_spells:
+        all_spells.append(spell)
+        print(f'''
+{spell.name}
+Cast time: {spell.casting_time} | Range: {spell.range} | Duration: {spell.duration}''')
 
 def spellbook_manager(character):
     clear_terminal()

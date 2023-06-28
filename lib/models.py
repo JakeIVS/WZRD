@@ -37,16 +37,16 @@ class Spell(Base):
         if self.level is 0:
             shown_level = 'Cantrip'
         elif self.level is 1:
-            shown_level = '1st'
+            shown_level = '1st Level Spell'
         elif self.level is 2:
-            shown_level = '2nd'
+            shown_level = '2nd Level Spell'
         elif self.level is 3:
-            shown_level = '3rd'
+            shown_level = '3rd Level Spell'
         else:
-            shown_level = str(self.level + 'th')
+            shown_level = str(self.level + 'th Level Spell')
         return f'''
             {self.name}:
-            {shown_level} level spell
+            {shown_level}
             Range: {self.range} | Cast Time: {self.casting_time} | Duration: {self.duration}
             ---
             {self.description}
