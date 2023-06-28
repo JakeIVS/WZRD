@@ -2,7 +2,7 @@
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from models import Spell, User, Character, Base
+from models import Spell, User, Character, character_spell
 import os
 import time
 
@@ -72,7 +72,6 @@ def choose_user():
             else:
                 choose_user()
     
-
 def new_user():
     clear_terminal()
     existing_users = session.query(User.username).all()
@@ -104,6 +103,8 @@ def new_user():
         else:
             new_user()
 
+
+
 def user_menu(current_user_id):
     clear_terminal()
 
@@ -133,6 +134,7 @@ def user_menu(current_user_id):
         print('Not a valid response.')
 
 
+
 def create_character(user_id):
     new_name = str(input('Name Your Character >>> '))
     starting_level = int(input('What is your character\'s current level? >>> '))
@@ -155,7 +157,8 @@ def create_character(user_id):
         session.commit()
     else:
         exit()
-    
+
+
 
 def character_menu(char_id, current_user_id):
     clear_terminal()
@@ -172,23 +175,28 @@ def character_menu(char_id, current_user_id):
                     3) Manage Gold
                     4) Manage Level
 
+                    
+                    DELETE) Delete Character
 
-
-                    0) Delete Character
+                    0) Back
     """)
     
     choice = input("Choose Option: ")
     if choice == '2':
         spellbook_manager(character)
-    if choice == '3':
+    elif choice == '3':
         manage_gold(character)
-    if choice == '0':
+    elif choice == 'DELETE':
         selected_character = session.query(Character).filter(Character.character_id == char_id)
         confirm = input(f'{selected_character[0].name} will be deleted. (type DELETE to confirm): ')
         if confirm == 'DELETE':
             selected_character.delete()
             session.commit()
             user_menu(current_user_id)
+    elif choice == '0':
+        user_menu(current_user_id)
+
+
 
 def spellbook_manager(character):
     clear_terminal()
@@ -206,6 +214,8 @@ def spellbook_manager(character):
         character_menu(character.character_id, current_user_id)
     elif choice == '1':
         add_spell(character)
+    elif choice == '2':
+        remove_spell(character)
 
 def add_spell(character):
     clear_terminal()
@@ -300,7 +310,32 @@ def add_spell(character):
         spellbook_manager(character)
 
 def remove_spell(character):
-    pass
+    clear_terminal()
+    print("Remove Spell:")
+    current_spells = []
+    spell_query = session.query(Spell).filter(Spell.characters.any(character_id=character.character_id)).order_by(Spell.level).all()
+    count = 1
+    for spell in spell_query:
+        current_spells.append(spell)
+        print(f'{count}) {spell.name} (level {spell.level})')
+        count = count + 1
+    print('0) Back')
+    choice = input("Choose option: ")
+    if choice == '0':
+        spellbook_manager(character)
+    else:
+        clear_terminal()
+        selected_spell = current_spells[int(choice)-1]
+        print(selected_spell)
+        delete_confirm = input('Delete Spell? (y/n): ')
+        if delete_confirm == 'y':
+            pass
+        else:
+            remove_spell(character)
+
+
+
+
 
 def manage_gold(character):
     clear_terminal()
