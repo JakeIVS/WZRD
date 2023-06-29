@@ -16,13 +16,12 @@ def initialize():
     ''' )
     start_option = int(input('Choose Option: '))
 
-    while start_option != 0:
-        if start_option == 1:
-            choose_user()            
-            
-
-        if start_option == 2:
-            new_user()
+    if start_option == 1:
+        choose_user()            
+    elif start_option == 2:
+        new_user()
+    else:
+        exit()
 
 
 #  clears terminal and prints header
@@ -50,6 +49,7 @@ def choose_user():
     for user in user_list:
         valid_user_ids.append(user.user_id) # creates a list of all valid ID selections
         print(f'            {user.user_id}) {user.username}')
+    print('            0) Exit')
     if valid_user_ids == []: # checks to see if any User objects exist
         print('     No users exist')
         print('     1) Create New User')
@@ -59,9 +59,11 @@ def choose_user():
             new_user()
         else:
             initialize()
-    else:
+    else: # if there are users in the user database
         user_select = int(input('Select User: '))
-        if user_select in valid_user_ids: # makes sure input is a valid option for login
+        if user_select == 0:
+            initialize()
+        elif user_select in valid_user_ids: # makes sure input is a valid option for login
             password = input('Enter Password >>> ')
             user = session.query(User).filter(User.user_id == user_select).first()
             if password == user.password: # validates user password
@@ -70,7 +72,7 @@ def choose_user():
             else:
                 clear_terminal()
                 print(colored('     Incorrect password', 'red'))
-                time.sleep(1)
+                pauser = input('Press Enter to continue')
                 choose_user() # return to menu
         else:
             print(colored('     Invalid input', 'red'))
@@ -131,9 +133,11 @@ def user_menu(current_user_id): # main menu for user once logged in
         print('''
                  -or-
 
+    ''')
+    print('''
         NEW) Create New Character
         0) Logout
-    ''')
+        ''')
     choice = input ('Choose Character: ') # input character id to select character
     if choice == 'NEW':
         create_character(current_user_id)
@@ -144,7 +148,7 @@ def user_menu(current_user_id): # main menu for user once logged in
         character_menu(int(choice), character.owner) # selects character based on id input
     else:
         print(colored('     Not a valid response.', 'red'))
-        time.sleep(2)
+        pauser = input('Press Enter to continue')
         user_menu(current_user.user_id) # returns to menu
 
 
@@ -216,7 +220,7 @@ def character_menu(char_id, current_user_id):
         else:
             clear_terminal()
             print('Delete aborted')
-            time.sleep(1)
+            pauser = input('Press Enter to continue')
             character_menu(character.character_id, current_user_id)
     elif choice == '0':
         user_menu(current_user_id) # return back to menu for selecting character
@@ -227,6 +231,9 @@ def spellbook(character):
     clear_terminal()
     highest_level_tuple = session.query(Spell.level).filter(Spell.characters.any(character_id=character.character_id)).order_by(desc(Spell.level)).first() # data is returned automatically as a tuple with one value
     highest_level, = highest_level_tuple # converts tuple to integer
+    if not highest_level:
+        print('Spellbook is currently empty')
+        pauser = input('Press Enter to continue')
     all_spells = [] # list of all spells in spellbook
     for level in range(0,highest_level+1):
         spellbook_segment(level, character, all_spells) # prints a segment for each level of spell in ascending order, with a header for the spell level
@@ -236,13 +243,23 @@ def spellbook(character):
         character_menu(character.character_id, character.owner) # go back one menu 
     else:
         clear_terminal()
-        selected_spell = session.query(Spell).filter(Spell.name == choice).first() # find spell with entered name
-        print(selected_spell)
-        back = input('1) Back to Spellbook 0) Back to Menu: ')
-        if back == '1': # back one menu
+        
+        selected_spell = session.query(Spell).filter(Spell.name.like(choice.lower())).first() # find spell with entered name
+        if selected_spell: # check if entered spell name exists
+            print(type(selected_spell.name))
+            print(selected_spell)
+            back = input('1) Back to Spellbook 0) Back to Menu: ')
+            if back == '1': # back one menu
+                spellbook(character)
+            elif back == '0': # goes all the way back to character options
+                character_menu(character.character_id, character.owner)
+        else: # if spell with entered name does not exist
+            clear_terminal()
+            print(colored(f'''
+        Can't find spell by the name of {choice}.  
+                  ''','red'))
+            pauser = input('Press Enter to continue')
             spellbook(character)
-        elif back == '0': # goes all the way back to character options
-            character_menu(character.character_id, character.owner)
 
     
 # divides spell list into sections based on spell level
@@ -399,7 +416,7 @@ def add_spell(character):
                         print(colored(f'''
             Insufficient funds (Cost: {cost}gp)
             ''', 'red'))
-                        time.sleep(3)
+                        pauser = input('Press Enter to continue')
                         add_spell(character)
                 else:
                     add_spell(character)
@@ -408,13 +425,13 @@ def add_spell(character):
             print(colored(f'''
         Spell level too high for current character (max spell level: {round((character.level+0.5) / 2)})  
                   ''', 'red'))
-            time.sleep(3)
+            pauser = input('Press Enter to continue')
             add_spell(character)
         
     elif choice == '2': # searching spell list by spell name
         spell_search = input("Search for a spell by name >>> ")
         clear_terminal
-        search_results = session.query(Spell).filter(Spell.name.like(f'%{spell_search}')).all()
+        search_results = session.query(Spell).filter(Spell.name.like(f'%{spell_search}%')).all()
         for spell in search_results:
             if spell.level <= round((character.level+0.5) / 2):
                 print(f'        ID: {spell.spell_id}) {spell.name} ({spell.casting_time}) | Level {spell.level} Spell')
@@ -464,7 +481,7 @@ def add_spell(character):
                     print(colored(f'''
                 Spell level too high for current character (max spell level: {round((character.level+0.5) / 2)})  
                         ''', 'red'))
-                    time.sleep(3)
+                    pauser = input('Press Enter to continue')
                     add_spell(character)
             else: # confirmation denied
                 add_spell(character)
@@ -474,7 +491,7 @@ def add_spell(character):
     else: # invalid option selected
         clear_terminal()
         print(colored('invalid selection','red'))
-        time.sleep(1)
+        pauser = input('Press Enter to continue')
         character_menu(character.character_id, character.owner)
 
 
@@ -505,7 +522,7 @@ def remove_spell(character):
                 print(f'''
         {selected_spell.name} (ID: {selected_spell.spell_id}) removed from Spellbook.
         ''')
-                time.sleep(3)
+                pauser = input('Press Enter to continue')
                 remove_spell(character) # returns to spell remove menu
         else: # confirmation denied
             remove_spell(character) # returns to  spell remove menu
@@ -543,7 +560,7 @@ def manage_gold(character):
         else: # character does not have enough gold to subtract
             clear_terminal()
             print(colored('Insufficient funds', 'red'))
-            time.sleep(2)
+            pauser = input('Press Enter to continue')
             character_menu(character.character_id, character.owner)
     elif change == '0':
         character_menu(character.character_id, character.owner)
@@ -575,7 +592,7 @@ def manage_level(character):
         
         You are now Level {character.level}!
         ''')
-        time.sleep(4)
+        pauser = input('Press Enter to continue')
         character_menu(character.character_id, character.owner)
     elif choice == '2':
         new_level = input('Enter new level >>> ')
@@ -586,7 +603,7 @@ def manage_level(character):
         print(f'''
         Character set to Level {character.level}.
               ''')
-        time.sleep(3)
+        pauser = input('Press Enter to continue')
         character_menu(character.character_id, character.owner)
 
     elif choice == '0':
@@ -594,7 +611,7 @@ def manage_level(character):
     else: # invalid input
         clear_terminal()
         print(colored('invalid option','red'))
-        time.sleep(1)
+        pauser = input('Press Enter to continue')
         manage_level(character)
 
 
