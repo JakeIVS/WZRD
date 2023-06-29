@@ -282,7 +282,7 @@ def add_spell(character):
         spellbook_manager(character)
     elif  choice == '1':
         level_search = input("Level of Spell >>> ")
-        cost = int(level_search * 50)
+        cost = int(level_search) * 50
         clear_terminal()
         spell_list = []
         spells_at_level = session.query(Spell).filter(Spell.level == int(level_search)).all()
@@ -467,11 +467,23 @@ def manage_level(character):
         character.level = character.level +1
         session.add(character)
         session.commit()
+        clear_terminal()
+        print(f'''
+        Level up!
+        
+        You are now Level {character.level}!
+        ''')
+        time.sleep(4)
+        character_menu(character.character_id, current_user_id)
     elif choice == '2':
         new_level = input('Enter new level >>> ')
         character.level = int(new_level)
         session.add(character)
         session.commit()
+        clear_terminal()
+        print(f'''
+        Character set to Level {character.level}.
+              ''')
     elif choice == '0':
         character_menu(character.character_id, current_user_id)
 
