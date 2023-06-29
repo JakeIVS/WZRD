@@ -223,7 +223,7 @@ def spellbook(character):
     else:
         clear_terminal()
         selected_spell = session.query(Spell).filter(Spell.name == choice).first()
-        print("     "+selected_spell)
+        print(selected_spell)
         back = input('1) Back to Spellbook 2) Back to Menu: ')
         if back == '1':
             spellbook(character)
@@ -399,7 +399,7 @@ def remove_spell(character):
     else:
         clear_terminal()
         selected_spell = current_spells[int(choice)-1]
-        print("     "+selected_spell)
+        print(selected_spell)
         delete_confirm = input('Delete Spell? (y/n): ')
         if delete_confirm == 'y':
                 print(len(character.spells))

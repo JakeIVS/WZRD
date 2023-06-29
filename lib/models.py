@@ -45,13 +45,13 @@ class Spell(Base):
         else:
             shown_level = str(self.level + 'th Level Spell')
         return f'''
-            {self.name}:
-            {shown_level}
-            Range: {self.range} | Cast Time: {self.casting_time} | Duration: {self.duration}
-            ---
-            {self.description}
-            ---
-            {self. higher_level}
+{self.name}:
+{shown_level}
+Range: {self.range} | Cast Time: {self.casting_time} | Duration: {self.duration}
+---
+{self.description}
+---
+{self. higher_level}
         '''
 
 class User(Base):
