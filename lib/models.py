@@ -65,7 +65,16 @@ class User(Base):
     def __repr__(self):
         return f"User: {self.username}"
 
-    
+class Dungeon_master(Base):
+    __tablename__ = 'dungeonmasters'
+
+    dm_id = Column(Integer(), primary_key=True)
+    username = Column(String())
+    password = Column(String())
+
+    def __repr__(self):
+        return f"DM: {self.username}"
+
 class Character(Base):
     __tablename__ = 'characters'
 
