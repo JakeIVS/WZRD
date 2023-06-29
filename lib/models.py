@@ -43,7 +43,7 @@ class Spell(Base):
         elif self.level is 3:
             shown_level = '3rd Level Spell'
         else:
-            shown_level = str(self.level + 'th Level Spell')
+            shown_level = str(f'{self.level}th Level Spell')
         return f'''
 {self.name}:
 {shown_level}
@@ -65,16 +65,6 @@ class User(Base):
     def __repr__(self):
         return f"User: {self.username}"
 
-class Dungeon_master(Base):
-    __tablename__ = 'dungeonmasters'
-
-    dm_id = Column(Integer(), primary_key=True)
-    username = Column(String())
-    password = Column(String())
-
-    def __repr__(self):
-        return f"DM: {self.username}"
-
 class Character(Base):
     __tablename__ = 'characters'
 
@@ -91,3 +81,23 @@ class Character(Base):
         {self.name} (Level {self.level})
         {self.gold} Gold
         '''
+
+class Dungeon_master(Base):
+    __tablename__ = 'dungeonmasters'
+
+    dm_id = Column(Integer(), primary_key=True)
+    username = Column(String())
+    password = Column(String())
+
+    campaigns = relationship('Campaign', backref=backref('dungeonmasters'), cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f"DM: {self.username}"
+    
+class Campaign(Base):
+    __tablename__ = 'campaigns'
+
+    campaign_id = Column(Integer(), primary_key=True)
+    dm = Column(Integer(), ForeignKey('dungeonmasters.dm_id'))
+    group_name = Column(String())
+    
