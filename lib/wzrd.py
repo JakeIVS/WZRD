@@ -10,9 +10,9 @@ import time
 def initialize():
     clear_terminal()
     print('''
-                1) Login
-                2) New User
-                0) Exit
+        1) Login
+        2) New User
+        0) Exit
     ''' )
     start_option = int(input('Choose Option: '))
 
@@ -36,8 +36,6 @@ def clear_terminal():
         \  /\  /./ /___| |\ \ | |/ /
          \/  \/ \_____/\_| \_||___/
 
-
-
     ''')
     
 
@@ -58,17 +56,25 @@ def choose_user():
         if choice == 1:
             new_user()
         else:
-            exit()
+            initialize()
     else:
         user_select = int(input('Select User: '))
         if user_select in valid_user_ids:
-            current_user_id = user_select
-            user_menu(current_user_id)
+            password = input('Enter Password >>> ')
+            user = session.query(User).filter(User.user_id == user_select).first()
+            if password == user.password:
+                current_user_id = user_select
+                user_menu(current_user_id)
+            else:
+                clear_terminal()
+                print('Incorrect password')
+                time.sleep(1)
+                choose_user()
         else:
             print('Invalid input')
             choice = input('Exit? (y/n): ')
             if choice == 'y':
-                exit()
+                initialize()
             else:
                 choose_user()
     
@@ -91,7 +97,7 @@ def new_user():
             print('Passwords do not match')
             choice = input ('Exit? (y/n): ')
             if choice == 'y':
-                exit()
+                initialize()
             else:
                 new_user()
             
@@ -99,7 +105,7 @@ def new_user():
         print('user already exists')
         choice = input ('Exit? (y/n): ')
         if choice == 'y':
-            exit()
+            initialize()
         else:
             new_user()
 
@@ -110,20 +116,21 @@ def user_menu(current_user_id):
 
     current_user = session.query(User).filter(User.user_id == int(current_user_id)).first()
     print(f'''
-                Welcome, {current_user.username}!
+        Welcome, {current_user.username}!
 
-               Choose a character:
+        Choose a character:
     ''')
     character_query = session.query(Character).filter(Character.owner == current_user_id).all()
     valid_char_choices = []
     for character in character_query:
         valid_char_choices.append(character.character_id)
-        print(f"{character.character_id}) {character.name}")
+        print(f"        {character.character_id}) {character.name}")
     if valid_char_choices != []:
         print('''
-        -or-
+                 -or-
+
+        0) Create New Character
     ''')
-    print('0) Create New Character')  
     choice = int(input ('Choose Character: '))
     if choice == 0:
         create_character(current_user_id)
@@ -156,7 +163,7 @@ def create_character(user_id):
         session.add(new_character)
         session.commit()
     else:
-        exit()
+        user_menu(current_user_id)
 
 
 
@@ -188,6 +195,8 @@ def character_menu(char_id, current_user_id):
         spellbook_manager(character)
     elif choice == '3':
         manage_gold(character)
+    elif choice == '4':
+        manage_level(character)
     elif choice == 'DELETE':
         selected_character = session.query(Character).filter(Character.character_id == char_id)
         confirm = input(f'{selected_character[0].name} will be deleted. (type DELETE to confirm): ')
@@ -204,14 +213,22 @@ def spellbook(character):
     highest_level_tuple = session.query(Spell.level).filter(Spell.characters.any(character_id=character.character_id)).order_by(desc(Spell.level)).first()
     highest_level, = highest_level_tuple
     all_spells = []
-    for level in range(1,highest_level):
+    for level in range(1,highest_level+1):
         spellbook_segment(level, character, all_spells)
 
-    choice = input('Choose Spell >>> ')
-    clear_terminal()
-    selected_spell = session.query(Spell).filter(Spell.name == choice).first()
-    print(selected_spell)
-    back = input('1) Back to Spellbook 2) Back to Menu: ')
+    choice = input('Choose Spell or type "back" >>> ')
+    if choice == 'back':
+        character_menu(character.character_id, current_user_id)
+    else:
+        clear_terminal()
+        selected_spell = session.query(Spell).filter(Spell.name == choice).first()
+        print(selected_spell)
+        back = input('1) Back to Spellbook 2) Back to Menu: ')
+        if back == '1':
+            spellbook(character)
+        elif back == '2':
+            character_menu(character.character_id, current_user_id)
+
     
 
 def spellbook_segment(level, character, all_spells):
@@ -224,12 +241,13 @@ def spellbook_segment(level, character, all_spells):
     else:
         level_string = f'{level}th'
     level_spells = session.query(Spell).filter(Spell.characters.any(character_id=character.character_id), Spell.level == level).all()
-    print(f'------- {level_string} Level -------')
+    print(f'''
+    ------- {level_string} Level -------''')
     for spell in level_spells:
         all_spells.append(spell)
         print(f'''
-{spell.name}
-Cast time: {spell.casting_time} | Range: {spell.range} | Duration: {spell.duration}''')
+>   {spell.name}
+    Cast time: {spell.casting_time} | Range: {spell.range} | Duration: {spell.duration}''')
 
 def spellbook_manager(character):
     clear_terminal()
@@ -362,7 +380,13 @@ def remove_spell(character):
         print(selected_spell)
         delete_confirm = input('Delete Spell? (y/n): ')
         if delete_confirm == 'y':
-            pass
+                print(len(character.spells))
+                character.spells.remove(selected_spell)
+                session.add(character)
+                session.commit()
+                print(len(character.spells))
+                print(f'removed id {selected_spell.spell_id}')
+                pauser = input('pausing')
         else:
             remove_spell(character)
 
@@ -402,7 +426,30 @@ def manage_gold(character):
             character_menu(character.character_id, current_user_id)
 
   
-
+def manage_level(character):
+    clear_terminal()
+    print(f'''
+        {character.name}
+            
+            Your current level is {character.level}.
+            
+            Level up to level {character.level +1}?
+            1)Level Up
+            2)Choose level manually
+            0) Back
+            ''')
+    choice = (input('Choose Option: '))
+    if choice == '1':
+        character.level = character.level +1
+        session.add(character)
+        session.commit()
+    elif choice == '2':
+        new_level = input('Enter new level >>> ')
+        character.level = int(new_level)
+        session.add(character)
+        session.commit()
+    elif choice == '0':
+        character_menu(character.character_id, current_user_id)
 
 
 if __name__ == '__main__':
