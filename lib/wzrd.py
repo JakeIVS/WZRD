@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from termcolor import colored
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import declarative_base, sessionmaker
 from models import Spell, User, Character, character_spell
@@ -29,7 +29,7 @@ def initialize():
 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
-    print('''
+    print(colored('''
          _    _  ____________ ______
         | |  | ||___  /| ___ \|  _  \ 
         | |  | |   / / | |_/ /| | | |
@@ -37,7 +37,7 @@ def clear_terminal():
         \  /\  /./ /___| |\ \ | |/ /
          \/  \/ \_____/\_| \_||___/
 
-    ''')
+    ''', 'green'))
     
 
 
@@ -68,11 +68,11 @@ def choose_user():
                 user_menu(current_user_id)
             else:
                 clear_terminal()
-                print('     Incorrect password')
+                print(colored('     Incorrect password', 'red'))
                 time.sleep(1)
                 choose_user()
         else:
-            print('     Invalid input')
+            print(colored('     Invalid input', 'red'))
             choice = input('Exit? (y/n): ')
             if choice == 'y':
                 initialize()
@@ -95,7 +95,7 @@ def new_user():
             user_menu(current_id)
 
         else:
-            print('     Passwords do not match')
+            print(colored('     Passwords do not match', 'red'))
             choice = input ('Exit? (y/n): ')
             if choice == 'y':
                 initialize()
@@ -103,7 +103,7 @@ def new_user():
                 new_user()
             
     else:
-        print('     user already exists')
+        print(colored('     user already exists', 'red'))
         choice = input ('Exit? (y/n): ')
         if choice == 'y':
             initialize()
@@ -142,7 +142,7 @@ def user_menu(current_user_id):
     elif int(choice) in valid_char_choices:
         character_menu(int(choice), current_user_id)
     else:
-        print('     Not a valid response.')
+        print(colored('     Not a valid response.', 'red'))
 
 
 
@@ -286,56 +286,64 @@ def add_spell(character):
         spellbook_manager(character)
     elif  choice == '1':
         level_search = input("Level of Spell >>> ")
-        cost = int(level_search) * 50
-        clear_terminal()
-        spell_list = []
-        spells_at_level = session.query(Spell).filter(Spell.level == int(level_search)).all()
-        print(f'''
-        0) Back
-              
-        Level {level_search} Spells:
-
-        ''')
-        for spell in spells_at_level:
-            spell_list.append(spell)
-            print(f'ID: {spell.spell_id}) {spell.name} ({spell.casting_time})')
-        spell_select = input('Select spell by ID (0: Back) >>> ')
-        if spell_select == '0':
-            add_spell(character)
-        else:
+        if int(level_search) <= round((character.level+0.5) / 2):
+            cost = int(level_search) * 50
             clear_terminal()
-            selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first()
+            spell_list = []
+            spells_at_level = session.query(Spell).filter(Spell.level == int(level_search)).all()
             print(f'''
-        Spell to Add (Cost: {cost}gp):
-
-        {selected_spell} 
+            0) Back
+                
+            Level {level_search} Spells:
 
             ''')
-            confirm_spell = input('Confirm? (y/n): ')
-            if confirm_spell == 'y':
-                if character.gold - cost >= 0:
-                    character.spells.append(selected_spell)
-                    character.gold = character.gold - cost
-                    session.add(character)
-                    session.commit()
-                    clear_terminal()
-                    print(f'''      {selected_spell.name} added to your Spellbook.
-                        
-                    ''')
-                    keep_going = input('Add More? (y/n): ')
-                    if keep_going == 'y':
-                        add_spell(character)
-                    else:
-                        character_menu(character.character_id, current_user_id)
-                else:
-                    clear_terminal()
-                    print(f'''
-        Insufficient funds (Cost: {cost}gp)
-        ''')
-                    time.sleep(3)
-                    add_spell(character)
-            else:
+            for spell in spells_at_level:
+                spell_list.append(spell)
+                print(f'ID: {spell.spell_id}) {spell.name} ({spell.casting_time})')
+            spell_select = input('Select spell by ID (0: Back) >>> ')
+            if spell_select == '0':
                 add_spell(character)
+            else:
+                clear_terminal()
+                selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first()
+                print(f'''
+            Spell to Add (Cost: {cost}gp):
+
+            {selected_spell} 
+
+                ''')
+                confirm_spell = input('Confirm? (y/n): ')
+                if confirm_spell == 'y':
+                    if character.gold - cost >= 0:
+                        character.spells.append(selected_spell)
+                        character.gold = character.gold - cost
+                        session.add(character)
+                        session.commit()
+                        clear_terminal()
+                        print(f'''      {selected_spell.name} added to your Spellbook.
+                            
+                        ''')
+                        keep_going = input('Add More? (y/n): ')
+                        if keep_going == 'y':
+                            add_spell(character)
+                        else:
+                            character_menu(character.character_id, current_user_id)
+                    else:
+                        clear_terminal()
+                        print(colored(f'''
+            Insufficient funds (Cost: {cost}gp)
+            ''', 'red'))
+                        time.sleep(3)
+                        add_spell(character)
+                else:
+                    add_spell(character)
+        else:
+            clear_terminal()
+            print(colored(f'''
+        Spell level too high for current character (max spell level: {round((character.level+0.5) / 2)})  
+                  ''', 'red'))
+            time.sleep(3)
+            add_spell(character)
         
     elif choice == '2':
         spell_search = input("Search for a spell by name >>> ")
@@ -375,9 +383,9 @@ def add_spell(character):
                         character_menu(character.character_id, current_user_id)
                 else:
                     clear_terminal()
-                    print(f'''
+                    print(colored(f'''
         Insufficient funds (Cost: {cost}gp)
-        ''')
+        ''', 'red'))
                     time.sleep(3)
                     add_spell(character)
             else:
@@ -450,7 +458,7 @@ def manage_gold(character):
             character_menu(character.character_id, current_user_id)
         else:
             clear_terminal()
-            print('Insufficient funds')
+            print(colored('Insufficient funds', 'red'))
             time.sleep(2)
             character_menu(character.character_id, current_user_id)
     elif change == '0':
