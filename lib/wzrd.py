@@ -6,7 +6,8 @@ from models import Spell, User, Character, character_spell
 import os
 import time
 
-
+# creates initial login screen
+# 
 def initialize():
     clear_terminal()
     print('''
@@ -51,7 +52,7 @@ def choose_user():
     if valid_user_ids == []:
         print('     No users exist')
         print('     1) Create New User')
-        print('     2) Exit')
+        print('     0) Exit')
         choice = int(input('Choose option: '))
         if choice == 1:
             new_user()
@@ -129,14 +130,17 @@ def user_menu(current_user_id):
         print('''
                  -or-
 
-        0) Create New Character
+        NEW) Create New Character
+        0) Logout
     ''')
-    choice = int(input ('Choose Character: '))
-    if choice == 0:
+    choice = input ('Choose Character: ')
+    if choice == 'NEW':
         create_character(current_user_id)
         user_menu(current_user_id)
-    elif choice in valid_char_choices:
-        character_menu(choice, current_user_id)
+    elif choice == '0':
+        initialize()
+    elif int(choice) in valid_char_choices:
+        character_menu(int(choice), current_user_id)
     else:
         print('     Not a valid response.')
 
@@ -217,17 +221,17 @@ def spellbook(character):
     for level in range(1,highest_level+1):
         spellbook_segment(level, character, all_spells)
 
-    choice = input('Choose Spell or type "back" >>> ')
-    if choice == 'back':
+    choice = input('Choose Spell or 0) Back >>> ')
+    if choice == '0':
         character_menu(character.character_id, current_user_id)
     else:
         clear_terminal()
         selected_spell = session.query(Spell).filter(Spell.name == choice).first()
         print(selected_spell)
-        back = input('1) Back to Spellbook 2) Back to Menu: ')
+        back = input('1) Back to Spellbook 0) Back to Menu: ')
         if back == '1':
             spellbook(character)
-        elif back == '2':
+        elif back == '0':
             character_menu(character.character_id, current_user_id)
 
     
@@ -295,7 +299,7 @@ def add_spell(character):
         for spell in spells_at_level:
             spell_list.append(spell)
             print(f'ID: {spell.spell_id}) {spell.name} ({spell.casting_time})')
-        spell_select = input('Select spell by ID >>> ')
+        spell_select = input('Select spell by ID (0: Back) >>> ')
         if spell_select == '0':
             add_spell(character)
         else:
@@ -339,7 +343,7 @@ def add_spell(character):
         search_results = session.query(Spell).filter(Spell.name.like(f'%{spell_search}')).all()
         for spell in search_results:
             print(f'        ID: {spell.spell_id}) {spell.name} ({spell.casting_time}) | Level {spell.level} Spell')
-        spell_select = input('Select spell by ID >>> ')
+        spell_select = input('Select spell by ID (0: Back) >>> ')
         if spell_select == '0':
             add_spell(character)
         else:
@@ -427,6 +431,7 @@ def manage_gold(character):
 
             1) Add
             2) Remove
+            0) Back
 
 
             
@@ -437,7 +442,7 @@ def manage_gold(character):
         character.gold = new_gp
         session.commit()
         character_menu(character.character_id, current_user_id)
-    if change == '2':
+    elif change == '2':
         new_gp = int(character.gold) - int(input('Gold to Remove >>> '))
         if new_gp >= 0:
             character.gold = new_gp
@@ -448,6 +453,8 @@ def manage_gold(character):
             print('Insufficient funds')
             time.sleep(2)
             character_menu(character.character_id, current_user_id)
+    elif change == '0':
+        character_menu(character.character_id, current_user_id)
 
   
 def manage_level(character):
