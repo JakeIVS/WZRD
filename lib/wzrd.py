@@ -7,7 +7,6 @@ import os
 import time
 
 # creates initial login screen
-# 
 def initialize():
     clear_terminal()
     print('''
@@ -26,7 +25,8 @@ def initialize():
             new_user()
 
 
-
+#  clears terminal and prints header
+# use at the beginning of each menu function 
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
     print(colored('''
@@ -40,16 +40,17 @@ def clear_terminal():
     ''', 'light_red'))
     
 
-
+# lists all current users from 'users' table
+# allows selection based on user id
 def choose_user():
     clear_terminal()
     print('     Users:')
     user_list = session.query(User).all()
     valid_user_ids = []
     for user in user_list:
-        valid_user_ids.append(user.user_id)
+        valid_user_ids.append(user.user_id) # creates a list of all valid ID selections
         print(f'            {user.user_id}) {user.username}')
-    if valid_user_ids == []:
+    if valid_user_ids == []: # checks to see if any User objects exist
         print('     No users exist')
         print('     1) Create New User')
         print('     0) Exit')
@@ -60,24 +61,24 @@ def choose_user():
             initialize()
     else:
         user_select = int(input('Select User: '))
-        if user_select in valid_user_ids:
+        if user_select in valid_user_ids: # makes sure input is a valid option for login
             password = input('Enter Password >>> ')
             user = session.query(User).filter(User.user_id == user_select).first()
-            if password == user.password:
+            if password == user.password: # validates user password
                 current_user_id = user_select
                 user_menu(current_user_id)
             else:
                 clear_terminal()
                 print(colored('     Incorrect password', 'red'))
                 time.sleep(1)
-                choose_user()
+                choose_user() # return to menu
         else:
             print(colored('     Invalid input', 'red'))
             choice = input('Exit? (y/n): ')
             if choice == 'y':
-                initialize()
+                initialize() # exits to main menu
             else:
-                choose_user()
+                choose_user() # returns to list of users
     
 def new_user():
     clear_terminal()
@@ -85,68 +86,70 @@ def new_user():
     username = str(input('Enter your name >>> '))
     pass1 = str(input('Enter your new password >>> '))
     pass2 = str(input('Re-enter your password >>> '))
-    if (username,) not in existing_users:
-        if pass1 == pass2:
+    if (username,) not in existing_users: # makes sure username does not already exist
+        if pass1 == pass2:  # validates that both password inputs were identical
             user = User(username = username, password = pass1)
             session.add(user)
             session.commit()
             query = session.query(User).filter(User.username == username).first()
             current_id = query.user_id
-            user_menu(current_id)
+            user_menu(current_id) # logs in with created user
 
-        else:
+        else: # if password inputs are not identical
             print(colored('     Passwords do not match', 'red'))
             choice = input ('Exit? (y/n): ')
             if choice == 'y':
-                initialize()
-            else:
-                new_user()
+                initialize() # exits to main menu
+            else: # choice == 'n'
+                new_user()  # returns to start of user creation
             
-    else:
-        print(colored('     user already exists', 'red'))
+    else: # if username already exists
+        print(colored('     username already taken', 'red'))
         choice = input ('Exit? (y/n): ')
         if choice == 'y':
-            initialize()
-        else:
-            new_user()
+            initialize() # returns to main menu
+        else: # choice == 'n'
+            new_user() # returns to start of user creation
 
 
 
-def user_menu(current_user_id):
+def user_menu(current_user_id): # main menu for user once logged in
     clear_terminal()
 
-    current_user = session.query(User).filter(User.user_id == int(current_user_id)).first()
+    current_user = session.query(User).filter(User.user_id == int(current_user_id)).first() 
     print(f'''
         Welcome, {current_user.username}!
 
         Choose a character:
     ''')
     character_query = session.query(Character).filter(Character.owner == current_user_id).all()
-    valid_char_choices = []
+    valid_char_choices = [] # list of possible character ids to select
     for character in character_query:
         valid_char_choices.append(character.character_id)
         print(f"        {character.character_id}) {character.name}")
-    if valid_char_choices != []:
+    if valid_char_choices != []: # only prints the  "-or-"  if there are list options above it, otherwise will only show the create character option 
         print('''
                  -or-
 
         NEW) Create New Character
         0) Logout
     ''')
-    choice = input ('Choose Character: ')
+    choice = input ('Choose Character: ') # input character id to select character
     if choice == 'NEW':
         create_character(current_user_id)
         user_menu(current_user_id)
     elif choice == '0':
-        initialize()
+        initialize() # exits to main menu
     elif int(choice) in valid_char_choices:
-        character_menu(int(choice), character.owner)
+        character_menu(int(choice), character.owner) # selects character based on id input
     else:
         print(colored('     Not a valid response.', 'red'))
+        time.sleep(2)
+        user_menu(current_user.user_id) # returns to menu
 
 
 
-def create_character(user_id):
+def create_character(user_id): # prompt for creating new character
     new_name = str(input('Name Your Character >>> '))
     starting_level = int(input('What is your character\'s current level? >>> '))
     starting_gold = int(input('How much gold do your character have? >>> '))
@@ -157,7 +160,7 @@ def create_character(user_id):
     '''
     )
     confirm = input('Confirm? (y/n): ')
-    if confirm == 'y':
+    if confirm == 'y': # if yes, creates new Character object with inputted data
         new_character = Character(
             owner = user_id,
             name = new_name,
@@ -167,10 +170,11 @@ def create_character(user_id):
         session.add(new_character)
         session.commit()
     else:
-        user_menu(current_user_id)
+        user_menu(user_id)
 
 
 
+# menu for the selected character
 def character_menu(char_id, current_user_id):
     clear_terminal()
 
@@ -205,37 +209,43 @@ def character_menu(char_id, current_user_id):
     elif choice == 'DELETE':
         selected_character = session.query(Character).filter(Character.character_id == char_id)
         confirm = input(f'{selected_character[0].name} will be deleted. (type DELETE to confirm): ')
-        if confirm == 'DELETE':
+        if confirm == 'DELETE': # verification to prevent accidental deletion
             selected_character.delete()
             session.commit()
             user_menu(current_user_id)
+        else:
+            clear_terminal()
+            print('Delete aborted')
+            time.sleep(1)
+            character_menu(character.character_id, current_user_id)
     elif choice == '0':
-        user_menu(current_user_id)
+        user_menu(current_user_id) # return back to menu for selecting character
 
 
-def spellbook(character):
+# displays list of all spells added to selected character's spell list
+def spellbook(character): 
     clear_terminal()
-    highest_level_tuple = session.query(Spell.level).filter(Spell.characters.any(character_id=character.character_id)).order_by(desc(Spell.level)).first()
-    highest_level, = highest_level_tuple
-    all_spells = []
+    highest_level_tuple = session.query(Spell.level).filter(Spell.characters.any(character_id=character.character_id)).order_by(desc(Spell.level)).first() # data is returned automatically as a tuple with one value
+    highest_level, = highest_level_tuple # converts tuple to integer
+    all_spells = [] # list of all spells in spellbook
     for level in range(1,highest_level+1):
-        spellbook_segment(level, character, all_spells)
+        spellbook_segment(level, character, all_spells) # prints a segment for each level of spell in ascending order, with a header for the spell level
 
-    choice = input('Choose Spell or 0) Back >>> ')
+    choice = input('Choose Spell or 0) Back >>> ') # input must be exact name of spell as it appears on the list, case-sensitive
     if choice == '0':
-        character_menu(character.character_id, character.owner)
+        character_menu(character.character_id, character.owner) # go back one menu 
     else:
         clear_terminal()
-        selected_spell = session.query(Spell).filter(Spell.name == choice).first()
+        selected_spell = session.query(Spell).filter(Spell.name == choice).first() # find spell with entered name
         print(selected_spell)
         back = input('1) Back to Spellbook 0) Back to Menu: ')
-        if back == '1':
+        if back == '1': # back one menu
             spellbook(character)
-        elif back == '0':
+        elif back == '0': # goes all the way back to character options
             character_menu(character.character_id, character.owner)
 
     
-
+# divides spell list into sections based on spell level
 def spellbook_segment(level, character, all_spells):
     if level == 1:
         level_string = '1st'
@@ -247,13 +257,17 @@ def spellbook_segment(level, character, all_spells):
         level_string = f'{level}th'
     level_spells = session.query(Spell).filter(Spell.characters.any(character_id=character.character_id), Spell.level == level).all()
     print(f'''
-         ------- {level_string} Level -------''')
+         ------- {level_string} Level -------''') # segment header
     for spell in level_spells:
         all_spells.append(spell)
         print(f'''
         >   {spell.name}
-            Cast time: {spell.casting_time} | Range: {spell.range} | Duration: {spell.duration}''')
+            Cast time: {spell.casting_time} | Range: {spell.range} | Duration: {spell.duration}''') # format each list item
 
+
+
+
+# creates menu for adding and deleting from spellbook
 def spellbook_manager(character):
     clear_terminal()
     print('''
@@ -274,6 +288,10 @@ def spellbook_manager(character):
     elif choice == '3':
         add_cantrip(character)
 
+
+
+
+# function for adding level 0 spells (cantrips)
 def add_cantrip(character):
     pass
     clear_terminal()
@@ -318,6 +336,7 @@ def add_cantrip(character):
             add_cantrip(character)
 
 
+# create menu for adding spells to the spellbook
 def add_spell(character):
     clear_terminal()
     print('''
@@ -331,8 +350,8 @@ def add_spell(character):
         spellbook_manager(character)
     elif  choice == '1':
         level_search = input("Level of Spell >>> ")
-        if int(level_search) <= round((character.level+0.5) / 2):
-            cost = int(level_search) * 50
+        if int(level_search) <= round((character.level+0.5) / 2): # validates spell is of a level the current character has access to
+            cost = int(level_search) * 50 # cost in gold for transcribing spell (50 gp per spell level)
             clear_terminal()
             spell_list = []
             spells_at_level = session.query(Spell).filter(Spell.level == int(level_search)).all()
@@ -344,35 +363,35 @@ def add_spell(character):
             ''')
             for spell in spells_at_level:
                 spell_list.append(spell)
-                print(f'ID: {spell.spell_id}) {spell.name} ({spell.casting_time})')
+                print(f'ID: {spell.spell_id}) {spell.name} ({spell.casting_time})') # creates list of all spells at given level
             spell_select = input('Select spell by ID (0: Back) >>> ')
             if spell_select == '0':
                 add_spell(character)
             else:
                 clear_terminal()
-                selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first()
+                selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first() # query spell by selected spell ID
                 print(f'''
             Spell to Add (Cost: {cost}gp):
 
             {selected_spell} 
 
                 ''')
-                confirm_spell = input('Confirm? (y/n): ')
+                confirm_spell = input('Confirm? (y/n): ') # confirms spell to prevent accidental addition
                 if confirm_spell == 'y':
-                    if character.gold - cost >= 0:
-                        character.spells.append(selected_spell)
-                        character.gold = character.gold - cost
+                    if character.gold - cost >= 0: # validates character has the required amount of gold
+                        character.spells.append(selected_spell) # adds spell to spellbook
+                        character.gold = character.gold - cost # automatically removes gold needed to transcribe spell from character (WARNING: will still remove gold if choosing a spell already in the spellbook, although it will not create a duplicate item in the spellbook itself)
                         session.add(character)
                         session.commit()
                         clear_terminal()
                         print(f'''      {selected_spell.name} added to your Spellbook.
                             
-                        ''')
+                        ''') # confirmation message
                         keep_going = input('Add More? (y/n): ')
                         if keep_going == 'y':
                             add_spell(character)
                         else:
-                            character_menu(character.character_id, character.owner)
+                            character_menu(character.character_id, character.owner) # returns to character menu
                     else:
                         clear_terminal()
                         print(colored(f'''
@@ -382,7 +401,7 @@ def add_spell(character):
                         add_spell(character)
                 else:
                     add_spell(character)
-        else:
+        else: # if spell too high of level for chosen character
             clear_terminal()
             print(colored(f'''
         Spell level too high for current character (max spell level: {round((character.level+0.5) / 2)})  
@@ -390,7 +409,7 @@ def add_spell(character):
             time.sleep(3)
             add_spell(character)
         
-    elif choice == '2':
+    elif choice == '2': # searching spell list by spell name
         spell_search = input("Search for a spell by name >>> ")
         clear_terminal
         search_results = session.query(Spell).filter(Spell.name.like(f'%{spell_search}')).all()
@@ -406,7 +425,7 @@ def add_spell(character):
         else:
             clear_terminal()
             selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first()
-            cost = selected_spell.level * 50
+            cost = selected_spell.level * 50 # sets cost to transcribe spell (50 gp per spell level)
             print(f'''
         Spell to Add (Cost: {cost}gp):
 
@@ -415,44 +434,49 @@ def add_spell(character):
             ''')
             confirm_spell = input('Confirm? (y/n): ')
             if confirm_spell == 'y':
-                if selected_spell.level <= round((character.level+0.5) / 2):
-                    if character.gold - cost >= 0:
+                if selected_spell.level <= round((character.level+0.5) / 2): # validates that character is high enough level to learn selected spell
+                    if character.gold - cost >= 0: # validates that character has required amount of gold
                         character.spells.append(selected_spell)
-                        character.gold = character.gold - cost
+                        character.gold = character.gold - cost # automatically remove cost to transcribe spell from character gold
                         session.add(character)
                         session.commit()
                         clear_terminal()
                         print(f'''
                 {selected_spell.name} added to your Spellbook.
                             
-                ''')
+                ''') # confirmation message
                         keep_going = input('Add More? (y/n): ')
                         if keep_going == 'y':
                             add_spell(character)
                         else:
                             character_menu(character.character_id, character.owner)
-                    else:
+                    else: # if character doesn't have required funds
                         clear_terminal()
                         print(colored(f'''
             Insufficient funds (Cost: {cost}gp)
             ''', 'red'))
                         time.sleep(3)
-                        add_spell(character)
-                else:
+                        add_spell(character) # return to add spell menu
+                else: # if character doesn't have required level
                     clear_terminal()
                     print(colored(f'''
                 Spell level too high for current character (max spell level: {round((character.level+0.5) / 2)})  
                         ''', 'red'))
                     time.sleep(3)
                     add_spell(character)
-            else:
+            else: # confirmation denied
                 add_spell(character)
         
     elif choice == '0':
-        spellbook_manager(character)
-    else:
+        spellbook_manager(character) # return to menu for changing spellbook
+    else: # invalid option selected
+        clear_terminal()
+        print(colored('invalid selection','red'))
+        time.sleep(1)
         character_menu(character.character_id, character.owner)
 
+
+# menu for removing spells from a character's spellbook
 def remove_spell(character):
     clear_terminal()
     print("     Remove Spell:")
@@ -460,35 +484,34 @@ def remove_spell(character):
     spell_query = session.query(Spell).filter(Spell.characters.any(character_id=character.character_id)).order_by(Spell.level).all()
     count = 1
     for spell in spell_query:
-        current_spells.append(spell)
+        current_spells.append(spell) # adds all spells from character's spellbook into a list
         print(f'        {count}) {spell.name} (level {spell.level})')
-        count = count + 1
+        count = count + 1 # adds one to the list number for each spell added
     print('     0) Back')
     choice = input("Choose option: ")
     if choice == '0':
         spellbook_manager(character)
     else:
         clear_terminal()
-        selected_spell = current_spells[int(choice)-1]
+        selected_spell = current_spells[int(choice)-1] # query spell based on position on list
         print(selected_spell)
-        delete_confirm = input('Delete Spell? (y/n): ')
+        delete_confirm = input('Delete Spell? (y/n): ') # confirmation to prevent accidental deletion
         if delete_confirm == 'y':
-                print(len(character.spells))
-                character.spells.remove(selected_spell)
-                session.add(character)
+                character.spells.remove(selected_spell) # removes selected spell from the character spell list
+                session.add(character) # updates character object with 
                 session.commit()
                 print(f'''
         {selected_spell.name} (ID: {selected_spell.spell_id}) removed from Spellbook.
         ''')
                 time.sleep(3)
-                remove_spell(character)
-        else:
-            remove_spell(character)
+                remove_spell(character) # returns to spell remove menu
+        else: # confirmation denied
+            remove_spell(character) # returns to  spell remove menu
 
 
 
 
-
+# function to modify the characters amount of gold
 def manage_gold(character):
     clear_terminal()
     print(f'''
@@ -515,14 +538,17 @@ def manage_gold(character):
             character.gold = new_gp
             session.commit()
             character_menu(character.character_id, character.owner)
-        else:
+        else: # character does not have enough gold to subtract
             clear_terminal()
             print(colored('Insufficient funds', 'red'))
             time.sleep(2)
             character_menu(character.character_id, character.owner)
     elif change == '0':
         character_menu(character.character_id, character.owner)
-
+    else: # invalid option inputted
+        clear_terminal()
+        print(colored('invalid selection','red'))
+        manage_gold(character)
   
 def manage_level(character):
     clear_terminal()
@@ -537,7 +563,7 @@ def manage_level(character):
             0) Back
             ''')
     choice = (input('Choose Option: '))
-    if choice == '1':
+    if choice == '1': # level up by 1 level
         character.level = character.level +1
         session.add(character)
         session.commit()
@@ -563,11 +589,16 @@ def manage_level(character):
 
     elif choice == '0':
         character_menu(character.character_id, character.owner)
+    else: # invalid input
+        clear_terminal()
+        print(colored('invalid option','red'))
+        time.sleep(1)
+        manage_level(character)
 
 
 if __name__ == '__main__':
-    engine=create_engine('sqlite:///program.db')
+    engine=create_engine('sqlite:///program.db') # link to database
     Session= sessionmaker(bind=engine)
     session = Session()
 
-    initialize()
+    initialize() # print main menu
