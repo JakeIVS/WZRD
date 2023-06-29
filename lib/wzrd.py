@@ -137,18 +137,28 @@ def user_menu(current_user_id): # main menu for user once logged in
     print('''
         NEW) Create New Character
         0) Logout
+        DELETE) Delete User
         ''')
     choice = input ('Choose Character: ') # input character id to select character
     if choice == 'NEW':
         create_character(current_user_id)
         user_menu(current_user_id)
+    elif choice == 'DELETE':
+        print(f'Delete {current_user.name}?')
+        print(colored('WARNING: This change is permanent', 'red'))
+        confirm = input('Continue? (y/n)')
+        if confirm == 'y':
+            current_user.delete()
+            session.commit()
+        else:
+            user_menu(current_user_id)
     elif choice == '0':
         initialize() # exits to main menu
     elif int(choice) in valid_char_choices:
         character_menu(int(choice), character.owner) # selects character based on id input
     else:
         print(colored('     Not a valid response.', 'red'))
-        pauser = input('Press Enter to continue')
+        pauser = input('Press Enter to continue') # pauses program until any value is entered
         user_menu(current_user.user_id) # returns to menu
 
 
