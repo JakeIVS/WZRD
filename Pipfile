@@ -7,7 +7,7 @@ name = "pypi"
 sqlalchemy = "*"
 alembic = "*"
 requests = "*"
-art = "==6.0"
+termcolor = "*"
 
 [dev-packages]
 

@@ -1,1 +1,7 @@
+
+# Databases
 *.db
+lib/*.db
+
+# Virtual env metadata
+.venv
