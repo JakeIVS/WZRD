@@ -228,7 +228,7 @@ def spellbook(character):
     highest_level_tuple = session.query(Spell.level).filter(Spell.characters.any(character_id=character.character_id)).order_by(desc(Spell.level)).first() # data is returned automatically as a tuple with one value
     highest_level, = highest_level_tuple # converts tuple to integer
     all_spells = [] # list of all spells in spellbook
-    for level in range(1,highest_level+1):
+    for level in range(0,highest_level+1):
         spellbook_segment(level, character, all_spells) # prints a segment for each level of spell in ascending order, with a header for the spell level
 
     choice = input('Choose Spell or 0) Back >>> ') # input must be exact name of spell as it appears on the list, case-sensitive
@@ -247,17 +247,19 @@ def spellbook(character):
     
 # divides spell list into sections based on spell level
 def spellbook_segment(level, character, all_spells):
-    if level == 1:
-        level_string = '1st'
+    if level == 0:
+        level_string = 'Cantrips'
+    elif level == 1:
+        level_string = '1st Level'
     elif level == 2:
-        level_string = '2nd'
+        level_string = '2nd Level'
     elif level == 3:
-        level_string = '3rd'
+        level_string = '3rd Level'
     else:
         level_string = f'{level}th'
     level_spells = session.query(Spell).filter(Spell.characters.any(character_id=character.character_id), Spell.level == level).all()
     print(f'''
-         ------- {level_string} Level -------''') # segment header
+         ------- {level_string} -------''') # segment header
     for spell in level_spells:
         all_spells.append(spell)
         print(f'''
