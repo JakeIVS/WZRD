@@ -272,6 +272,52 @@ def spellbook_manager(character):
         add_spell(character)
     elif choice == '2':
         remove_spell(character)
+    elif choice == '3':
+        add_cantrip(character)
+
+def add_cantrip(character):
+    pass
+    clear_terminal()
+    spell_list = []
+    cantrips = session.query(Spell).filter(Spell.level == 0).all()
+    print(f'''
+    0) Back
+        
+    Cantrips:
+
+    ''')
+    for spell in cantrips:
+        spell_list.append(spell)
+        print(f'ID: {spell.spell_id}) {spell.name} ({spell.casting_time})')
+    spell_select = input('Select cantrip by ID (0: Back) >>> ')
+    if spell_select == '0':
+        add_cantrip(character)
+    else:
+        clear_terminal()
+        selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first()
+        print(f'''
+    Cantrip to Add:
+
+    {selected_spell} 
+
+        ''')
+        confirm_spell = input('Confirm? (y/n): ')
+        if confirm_spell == 'y':
+            character.spells.append(selected_spell)
+            session.add(character)
+            session.commit()
+            clear_terminal()
+            print(f'''      {selected_spell.name} added to your Spellbook.
+                
+            ''')
+            keep_going = input('Add More? (y/n): ')
+            if keep_going == 'y':
+                add_cantrip(character)
+            else:
+                character_menu(character.character_id, current_user_id)
+        else:
+            add_cantrip(character)
+
 
 def add_spell(character):
     clear_terminal()
