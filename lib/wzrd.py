@@ -407,43 +407,48 @@ def add_spell(character):
                 add_spell(character)
             else:
                 clear_terminal()
-                selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first() # query spell by selected spell ID
-                print(f'''
-            Spell to Add (Cost: {cost}gp):
+                selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select), Spell.level == int(level_search)).first() # query spell by selected spell ID
+                if selected_spell:
+                    print(f'''
+                Spell to Add (Cost: {cost}gp):
 
-            {selected_spell} 
+                {selected_spell} 
 
-                ''')
-                confirm_spell = input('Confirm? (y/n): ') # confirms spell to prevent accidental addition
-                if confirm_spell == 'y':
-                    if character.gold - cost >= 0: # validates character has the required amount of gold
-                        character.spells.append(selected_spell) # adds spell to spellbook
-                        character.gold = character.gold - cost # automatically removes gold needed to transcribe spell from character (WARNING: will still remove gold if choosing a spell already in the spellbook, although it will not create a duplicate item in the spellbook itself)
-                        session.add(character)
-                        session.commit()
-                        clear_terminal()
-                        print(f'''      {selected_spell.name} added to your Spellbook.
-                            
-                        ''') # confirmation message
-                        keep_going = input('Add More? (y/n): ')
-                        if keep_going == 'y':
+                    ''')
+                    confirm_spell = input('Confirm? (y/n): ') # confirms spell to prevent accidental addition
+                    if confirm_spell == 'y':
+                        if character.gold - cost >= 0: # validates character has the required amount of gold
+                            character.spells.append(selected_spell) # adds spell to spellbook
+                            character.gold = character.gold - cost # automatically removes gold needed to transcribe spell from character (WARNING: will still remove gold if choosing a spell already in the spellbook, although it will not create a duplicate item in the spellbook itself)
+                            session.add(character)
+                            session.commit()
+                            clear_terminal()
+                            print(f'''      {selected_spell.name} added to your Spellbook.
+                                
+                            ''') # confirmation message
+                            keep_going = input('Add More? (y/n): ')
+                            if keep_going == 'y':
+                                add_spell(character)
+                            else: # stop adding spells
+                                character_menu(character.character_id, character.owner) # returns to character menu
+                        else: # if not enough funds
+                            clear_terminal()
+                            print(colored(f'''
+                Insufficient funds (Cost: {cost}gp)
+                ''', 'red'))
+                            pauser = input('Press Enter to continue')
                             add_spell(character)
-                        else:
-                            character_menu(character.character_id, character.owner) # returns to character menu
-                    else:
-                        clear_terminal()
-                        print(colored(f'''
-            Insufficient funds (Cost: {cost}gp)
-            ''', 'red'))
-                        pauser = input('Press Enter to continue')
+                    else: # confirm spell denied
                         add_spell(character)
-                else:
+                else: # id not in current spell level
+                    print(colored('Spell ID not found in current search', 'red'))
+                    pauser = input('Hit enter to continue')
                     add_spell(character)
         else: # if spell too high of level for chosen character
             clear_terminal()
             print(colored(f'''
         Spell level too high for current character (max spell level: {round((character.level+0.5) / 2)})  
-                  ''', 'red'))
+                ''', 'red'))
             pauser = input('Press Enter to continue')
             add_spell(character)
         
@@ -464,46 +469,58 @@ def add_spell(character):
             clear_terminal()
             selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first()
             cost = selected_spell.level * 50 # sets cost to transcribe spell (50 gp per spell level)
-            print(f'''
-        Spell to Add (Cost: {cost}gp):
+            if selected_spell.level <= round((character.level+0.5) / 2):
+                print(f'''
+            Spell to Add (Cost: {cost}gp):
 
-        {selected_spell} 
+            {selected_spell} 
 
-            ''')
-            confirm_spell = input('Confirm? (y/n): ')
-            if confirm_spell == 'y':
-                if selected_spell.level <= round((character.level+0.5) / 2): # validates that character is high enough level to learn selected spell
-                    if character.gold - cost >= 0: # validates that character has required amount of gold
-                        character.spells.append(selected_spell)
-                        character.gold = character.gold - cost # automatically remove cost to transcribe spell from character gold
-                        session.add(character)
-                        session.commit()
-                        clear_terminal()
-                        print(f'''
-                {selected_spell.name} added to your Spellbook.
-                            
-                ''') # confirmation message
-                        keep_going = input('Add More? (y/n): ')
-                        if keep_going == 'y':
-                            add_spell(character)
-                        else:
-                            character_menu(character.character_id, character.owner)
-                    else: # if character doesn't have required funds
+                ''')
+                confirm_spell = input('Confirm? (y/n): ')
+                if confirm_spell == 'y':
+                    if selected_spell.level <= round((character.level+0.5) / 2): # validates that character is high enough level to learn selected spell
+                        if character.gold - cost >= 0: # validates that character has required amount of gold
+                            character.spells.append(selected_spell)
+                            character.gold = character.gold - cost # automatically remove cost to transcribe spell from character gold
+                            session.add(character)
+                            session.commit()
+                            clear_terminal()
+                            print(f'''
+                    {selected_spell.name} added to your Spellbook.
+                                
+                    ''') # confirmation message
+                            keep_going = input('Add More? (y/n): ')
+                            if keep_going == 'y':
+                                add_spell(character)
+                            else:
+                                character_menu(character.character_id, character.owner)
+                        else: # if character doesn't have required funds
+                            clear_terminal()
+                            print(colored(f'''
+                Insufficient funds (Cost: {cost}gp)
+                ''', 'red'))
+                            time.sleep(3)
+                            add_spell(character) # return to add spell menu
+                    else: # if character doesn't have required level
                         clear_terminal()
                         print(colored(f'''
-            Insufficient funds (Cost: {cost}gp)
-            ''', 'red'))
-                        time.sleep(3)
-                        add_spell(character) # return to add spell menu
-                else: # if character doesn't have required level
-                    clear_terminal()
-                    print(colored(f'''
-                Spell level too high for current character (max spell level: {round((character.level+0.5) / 2)})  
-                        ''', 'red'))
-                    pauser = input('Press Enter to continue')
+                    Spell level too high for current character (max spell level: {round((character.level+0.5) / 2)})  
+                            ''', 'red'))
+                        pauser = input('Press Enter to continue')
+                        add_spell(character)
+                else: # confirmation denied
                     add_spell(character)
-            else: # confirmation denied
+            else:
+                print(f'''
+            Spell Preview:
+
+            {selected_spell} 
+
+                ''')
+                print(colored('Spell level above current max. Cannot add to spellbook', 'red'))
+                pauser = input('Hit Enter to Continue')
                 add_spell(character)
+
         
     elif choice == '0':
         spellbook_manager(character) # return to menu for changing spellbook
