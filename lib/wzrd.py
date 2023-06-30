@@ -20,8 +20,12 @@ def initialize():
         choose_user()            
     elif start_option == 2:
         new_user()
-    else:
+    elif start_option == 0:
         exit()
+    else: # if input not on list
+        print(colored('Not a valid input','red'))
+        pauser = input('Press Enter to Continue')
+        initialize()
 
 
 #  clears terminal and prints header
@@ -69,12 +73,12 @@ def choose_user():
             if password == user.password: # validates user password
                 current_user_id = user_select
                 user_menu(current_user_id)
-            else:
+            else: # if entered password doesn't match user.password
                 clear_terminal()
                 print(colored('     Incorrect password', 'red'))
                 pauser = input('Press Enter to continue')
                 choose_user() # return to menu
-        else:
+        else: # if input not a valid user id
             print(colored('     Invalid input', 'red'))
             choice = input('Exit? (y/n): ')
             if choice == 'y':
@@ -148,9 +152,13 @@ def user_menu(current_user_id): # main menu for user once logged in
         print(colored('WARNING: This change is permanent', 'red'))
         confirm = input('Continue? (y/n)')
         if confirm == 'y':
-            get_him_outta_here = session.query(User).filter(User.user_id == current_user.user_id)
-            get_him_outta_here[0].delete()
+            get_him_outta_here = session.query(User).filter(User.user_id == current_user.user_id).first()
+            session.delete(get_him_outta_here)
             session.commit()
+            clear_terminal()
+            print('User Deleted')
+            pauser = input('Press Enter to Continue')
+            initialize()
         else:
             user_menu(current_user_id)
     elif choice == '0':
@@ -222,10 +230,10 @@ def character_menu(char_id, current_user_id):
     elif choice == '4':
         manage_level(character)
     elif choice == 'DELETE':
-        selected_character = session.query(Character).filter(Character.character_id == char_id)
-        confirm = input(f'{selected_character[0].name} will be deleted. (type DELETE to confirm): ')
+        selected_character = session.query(Character).filter(Character.character_id == char_id).first()
+        confirm = input(f'{selected_character.name} will be deleted. (type DELETE to confirm): ')
         if confirm == 'DELETE': # verification to prevent accidental deletion
-            selected_character.delete()
+            session.delete(selected_character)
             session.commit()
             user_menu(current_user_id)
         else:
