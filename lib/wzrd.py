@@ -159,7 +159,7 @@ def user_menu(current_user_id): # main menu for user once logged in
             print('User Deleted')
             pauser = input('Press Enter to Continue')
             initialize()
-        else:
+        else: # confirm denied
             user_menu(current_user_id)
     elif choice == '0':
         initialize() # exits to main menu
@@ -192,7 +192,7 @@ def create_character(user_id): # prompt for creating new character
         )
         session.add(new_character)
         session.commit()
-    else:
+    else: # confirm denied
         user_menu(user_id)
 
 
@@ -231,12 +231,14 @@ def character_menu(char_id, current_user_id):
         manage_level(character)
     elif choice == 'DELETE':
         selected_character = session.query(Character).filter(Character.character_id == char_id).first()
-        confirm = input(f'{selected_character.name} will be deleted. (type DELETE to confirm): ')
-        if confirm == 'DELETE': # verification to prevent accidental deletion
+        print(f'{selected_character.name} will be deleted.')
+        print(colored('WARNING: This change is permanent', 'red'))
+        confirm = input('Continue? (y/n): ')
+        if confirm == 'y': # verification to prevent accidental deletion
             session.delete(selected_character)
             session.commit()
             user_menu(current_user_id)
-        else:
+        else: # confirm denied
             clear_terminal()
             print('Delete aborted')
             pauser = input('Press Enter to continue')
