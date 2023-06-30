@@ -263,7 +263,7 @@ def spellbook(character):
     choice = input('Choose Spell or 0) Back >>> ') # input must be exact name of spell as it appears on the list, case-sensitive
     if choice == '0':
         character_menu(character.character_id, character.owner) # go back one menu 
-    else:
+    else: # nonzero ID entererd
         clear_terminal()
         
         selected_spell = session.query(Spell).filter(Spell.name.like(choice.lower())).first() # find spell with entered name
