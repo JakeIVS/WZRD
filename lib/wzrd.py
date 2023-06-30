@@ -144,11 +144,12 @@ def user_menu(current_user_id): # main menu for user once logged in
         create_character(current_user_id)
         user_menu(current_user_id)
     elif choice == 'DELETE':
-        print(f'Delete {current_user.name}?')
+        print(f'Delete {current_user.username}?')
         print(colored('WARNING: This change is permanent', 'red'))
         confirm = input('Continue? (y/n)')
         if confirm == 'y':
-            current_user.delete()
+            get_him_outta_here = session.query(User).filter(User.user_id == current_user.user_id)
+            get_him_outta_here[0].delete()
             session.commit()
         else:
             user_menu(current_user_id)
@@ -240,10 +241,11 @@ def character_menu(char_id, current_user_id):
 def spellbook(character): 
     clear_terminal()
     highest_level_tuple = session.query(Spell.level).filter(Spell.characters.any(character_id=character.character_id)).order_by(desc(Spell.level)).first() # data is returned automatically as a tuple with one value
-    highest_level, = highest_level_tuple # converts tuple to integer
-    if not highest_level:
+    if not highest_level_tuple:
         print('Spellbook is currently empty')
         pauser = input('Press Enter to continue')
+        character_menu(character.character_id, character.owner)
+    highest_level, = highest_level_tuple # converts tuple to integer
     all_spells = [] # list of all spells in spellbook
     for level in range(0,highest_level+1):
         spellbook_segment(level, character, all_spells) # prints a segment for each level of spell in ascending order, with a header for the spell level
@@ -340,29 +342,36 @@ def add_cantrip(character):
         add_cantrip(character)
     else:
         clear_terminal()
-        selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select)).first()
-        print(f'''
-    Cantrip to Add:
+        selected_spell = session.query(Spell).filter(Spell.spell_id == int(spell_select), Spell.level == 0).first()
+        if selected_spell:
+            print(f'''
+        Cantrip to Add:
 
-    {selected_spell} 
+        {selected_spell} 
 
-        ''')
-        confirm_spell = input('Confirm? (y/n): ')
-        if confirm_spell == 'y':
-            character.spells.append(selected_spell)
-            session.add(character)
-            session.commit()
-            clear_terminal()
-            print(f'''      {selected_spell.name} added to your Spellbook.
-                
             ''')
-            keep_going = input('Add More? (y/n): ')
-            if keep_going == 'y':
-                add_cantrip(character)
+            confirm_spell = input('Confirm? (y/n): ')
+            if confirm_spell == 'y':
+                character.spells.append(selected_spell)
+                session.add(character)
+                session.commit()
+                clear_terminal()
+                print(f'''      {selected_spell.name} added to your Spellbook.
+                    
+                ''')
+                keep_going = input('Add More? (y/n): ')
+                if keep_going == 'y':
+                    add_cantrip(character)
+                else:
+                    character_menu(character.character_id, character.owner)
             else:
-                character_menu(character.character_id, character.owner)
+                add_cantrip(character)
         else:
+            print(colored("Spell not found in search list", 'red'))
+            pauser = input('Hit Enter to Continue')
             add_cantrip(character)
+
+    
 
 
 # create menu for adding spells to the spellbook
