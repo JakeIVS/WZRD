@@ -57,7 +57,7 @@ def choose_user():
     if valid_user_ids == []: # checks to see if any User objects exist
         print('     No users exist')
         print('     1) Create New User')
-        print('     0) Exit')
+        print('     0) Back')
         choice = int(input('Choose option: '))
         if choice == 1:
             new_user()
@@ -563,7 +563,7 @@ def remove_spell(character):
         delete_confirm = input('Delete Spell? (y/n): ') # confirmation to prevent accidental deletion
         if delete_confirm == 'y':
                 character.spells.remove(selected_spell) # removes selected spell from the character spell list
-                session.add(character) # updates character object with 
+                session.add(character) # updates character object to reflect new spell list
                 session.commit()
                 print(f'''
         {selected_spell.name} (ID: {selected_spell.spell_id}) removed from Spellbook.
