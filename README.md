@@ -1,5 +1,5 @@
 # WZRD
-WZRD is a virtual spellbook CLI for D&D 5th edition. It allows you to save learned spells to your spell list, create custom spells, and manage character stats.
+WZRD is a virtual spellbook CLI for D&D 5th edition. It allows you to create characters, save learned spells to your spell list, and manage character stats.
 
 ## Installation
 
