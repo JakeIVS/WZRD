@@ -56,3 +56,7 @@ To view the details of a spell from your spellbook, enter the name of the spell 
 ![Spell Chosen](image-2.png)
 
 NOTE: This differs from selecting a spell in the "Add Spell" or "Remove Spell" menus, which will ask you to enter the spell ID as an integer. In these scenarios, spell IDs are displayed in front of the spell information on the list.
+
+!["Add Spell" example](image-3.png)
+
+!["Add Spell" example 2](image-4.png)
