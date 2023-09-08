@@ -51,4 +51,8 @@ Create a new user by selecting New User from the main menu. Follow input prompts
 
 To view the details of a spell from your spellbook, enter the name of the spell exactly as it appears in the list.
 
+![Choosing a Spell by its name](image-1.png)
+
+![Spell Chosen](image-2.png)
+
 NOTE: This differs from selecting a spell in the "Add Spell" or "Remove Spell" menus, which will ask you to enter the spell ID as an integer. In these scenarios, spell IDs are displayed in front of the spell information on the list.
