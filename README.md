@@ -60,3 +60,9 @@ NOTE: This differs from selecting a spell in the "Add Spell" or "Remove Spell" m
 !["Add Spell" example](image-3.png)
 
 !["Add Spell" example 2](image-4.png)
+
+## Navigation Tips
+
+Make sure to always read the Command Line prompts carefully.
+
+Universally, an input of "0" will take you back to a previous menu. From anywhere in the application, continuing to input 0 will eventually lead to exiting the app.
