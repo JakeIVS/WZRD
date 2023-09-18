@@ -39,7 +39,7 @@ $ chmod +x ./seed.py
 
 To start the program, run ./wzrd.py
 
-![Main Screen](image.png)
+![Main Screen](lib/assets/image.png)
 
 Input prompts should be rather straightforward with what to enter.
 Menu items presented as numbered lists can be selected by entering the correlating number for the option you want to select and hitting enter.
@@ -51,15 +51,15 @@ Create a new user by selecting New User from the main menu. Follow input prompts
 
 To view the details of a spell from your spellbook, enter the name of the spell exactly as it appears in the list.
 
-![Choosing a Spell by its name](image-1.png)
+![Choosing a Spell by its name](lib/assets/image-1.png)
 
-![Spell Chosen](image-2.png)
+![Spell Chosen](lib/assets/image-2.png)
 
 NOTE: This differs from selecting a spell in the "Add Spell" or "Remove Spell" menus, which will ask you to enter the spell ID as an integer. In these scenarios, spell IDs are displayed in front of the spell information on the list.
 
-!["Add Spell" example](image-3.png)
+!["Add Spell" example](lib/assets/image-3.png)
 
-!["Add Spell" example 2](image-4.png)
+!["Add Spell" example 2](lib/assets/image-4.png)
 
 ## Navigation Tips
 
